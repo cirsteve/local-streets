@@ -7,19 +7,8 @@ var handle = {}
 handle["/"] = requestHandlers.start;
 handle["/tstream"] = requestHandlers.tstream;
 handle["/tsearch"] = requestHandlers.tsearch;
-handle["/test"] = requestHandlers.test;
-
+handle["/sf_stream"] = requestHandlers.sf_stream;
+handle["/ny_stream"] = requestHandlers.ny_stream;
+handle["/city_stream"] = requestHandlers.city_stream;
 
 server.start(router.route, handle);
-/*
-function streamer(stream) {
-	twit.stream('statuses/filter', {'locations':'-122.75,36.8,-121.75,37.8'},
-				stream.on('data', function(data) {
-					console.log(data);
-					socket.broadcast.emit('incoming',(data));
-			});
-);
-}
-			
-streamer();
-*/

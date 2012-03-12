@@ -1,5 +1,7 @@
 var twitter = require('ntwitter');
 var socket = require('socket.io');
+var fs = require('fs');
+var mongodb = require('mongodb');
 
 /*
 var twit = new twitter({
@@ -20,6 +22,28 @@ var twit = new twitter({
 function start(response) {
     console.log("Request handler 'start' was called.");
 	var body = 'html';
+	var client = new mongodb.Db('test', new mongodb.Server("127.0.0.1", 27017, {})),
+    test = function (err, collection) {
+      collection.insert({a:2}, function(err, docs) {
+
+        collection.count(function(err, count) {
+          test.assertEquals(1, count);
+        });
+
+        // Locate all the entries using find
+          collection.find().toArray(function(err, results) {
+          test.assertEquals(1, results.length);
+          test.assertTrue(results.a === 2);
+		  console.log("mongo love");
+          // Let's close the db
+          client.close();
+        });
+      });
+    };
+
+client.open(function(err, p_client) {
+  client.collection('test_insert', test);
+});
 	response.writeHead(200, {"Content-Type": "text/html"});
     response.write(body);
     response.end();
@@ -44,76 +68,40 @@ function tstream(response){
 	twit.stream('statuses/filter', {'locations':'-122.75,36.8,-121.75,37.8'},
 			function(stream) {
 				stream.on('data', function (data) {
-					console.log(data);
+					//console.log(data);
 					//socket.broadcast.emit('incoming',JSON.parse(data));
 				});
 			});
 }
 
-function test(response){
-		
-	var body = "<!DOCTYPE html>"+
-"<head>"+
-"<title>Streaming Tweets</title>"+
-'<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>'+
-'<script src="/socket.io/socket.io.js"></script>'+
-'<script src="http://localhost/myhome/jslib/openlayer/lib/OpenLayers.js"></script>'+
-"</head>"+
-"<body>"+
-"<h1>Stream All The Things</h1>"+
-'<div style="width:700px; height:600px; float:left" id="map"></div>'+
-'<div style="width:300px;float:right" class="tweets"></div>'+
-
-'<script type="text/javascript">'+
-	  'console.log("starting client");'+
-	  'var map = new OpenLayers.Map("map");'+
-
-	  'var wms = new OpenLayers.Layer.OSM();'+
-	  'map.addLayer(wms);'+
-
-
-      'map.setCenter(new OpenLayers.LonLat(-122.4386,37.7721)'+
-           '.transform('+
-            'new OpenLayers.Projection("EPSG:4326"),'+
-            'new OpenLayers.Projection("EPSG:900913") '+
-          ')'+
-		', 13'+
-        ');'+
-	  'var markers = new OpenLayers.Layer.Markers("Markers");'+
-	  'map.addLayer(markers);'+
-	  'var boxes = new OpenLayers.Layer.Boxes("Boxes");'+
-	  'var ext = [-122.75,36.8,-121.75,37.8];'+
-	  'bounds = OpenLayers.Bounds.fromArray(ext);'+
-	  'var box = new OpenLayers.Marker.Box(bounds);'+
-	  'box.setBorder({color:"red",width:1});'+
-	  'boxes.addMarker(box);'+
-	  'map.addLayer(boxes);'+
-	  'var size = new OpenLayers.Size(21,25);'+
-	  'var icon = new OpenLayers.Icon("http://www.openlayers.org/dev/img/marker.png", size);'+
-	  'var socket = io.connect("127.0.0.1:8888");'+
-		'socket.on("incoming",function(data){'+
-			'var d = $.parseJSON(data);'+
-			'if (!d.geo){'+
-				'var loc = "No Lat/Long";'+
-			'}'+
-			'else{'+
-				'var loc = "Lat: "+d.geo.coordinates[0]+" Long: "+d.geo.coordinates[1];'+
-				'var lonlati = new OpenLayers.LonLat(d.geo.coordinates[1],d.geo.coordinates[0])'+
-					'.transform(new OpenLayers.Projection("EPSG:4326"),new OpenLayers.Projection("EPSG:900913"));'+
-				'markers.addMarker(new OpenLayers.Marker(lonlati,icon.clone()));'+
-			'}'+
-			'$("div.tweets").prepend("<p>"+d.text + "</p>" + d.user.screen_name + " " + d.created_at + " " + loc +  "<hr />");'+
-		'});'+
-		
-"</script>"+
-
-"</body>";
+function city_stream(response){
+	var html;
+	html = fs.readFileSync('./city_stream.html');
 	response.writeHead(200,{"Content-Type":"text/html"});
-	response.write(body);
+	response.write(html);
 	response.end();
 }
+
+function sf_stream(response){
+	var html;
+	html = fs.readFileSync('./sf_stream.html');
+	response.writeHead(200,{"Content-Type":"text/html"});
+	response.write(html);
+	response.end();
+}
+
+function ny_stream(response){
+    var html;
+    html = fs.readFileSync('./ny_stream.html');
+    response.writeHead(200,{"Content-Type":"text/html"});
+    response.write(html);
+    response.end();
+}
+
 
 exports.start = start;
 exports.tsearch = tsearch;
 exports.tstream = tstream;
-exports.test = test;
+exports.sf_stream = sf_stream;
+exports.ny_stream = ny_stream;
+exports.city_stream = city_stream;
