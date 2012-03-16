@@ -98,6 +98,35 @@ function ny_stream(response){
     response.end();
 }
 
+function ny_static(response){
+  var html = fs.readFileSync('./ny_static.html');
+  response.writeHead(200,{"Content-Type":"text/html"});
+  response.write(html);
+  response.end();
+};
+
+function hash_vis(response){
+  var html = fs.readFileSync('./hash_vis.html');
+  response.writeHead(200,{"Content-Type":"text/html"});
+  response.write(html);
+  response.end();
+};
+
+function all_tweets(response) {
+
+  response.writeHead(200,{"Content-Type":"application/json"});
+  var mongo = new mongodb.Db('tweets', new mongodb.Server("127.0.0.1", 27017, {}));
+  mongo.open(function(err, db) {
+      if (err) throw err;
+      db.collection('sfnytweets', function(err, collection) {
+        collection.find().limit(10000).toArray(function(err, docs) {
+          response.write(JSON.stringify(docs));
+          response.end();
+        });
+      });
+  });
+};
+  
 
 exports.start = start;
 exports.tsearch = tsearch;
@@ -105,3 +134,5 @@ exports.tstream = tstream;
 exports.sf_stream = sf_stream;
 exports.ny_stream = ny_stream;
 exports.city_stream = city_stream;
+exports.all_tweets = all_tweets;
+exports.hash_vis = hash_vis;

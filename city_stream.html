@@ -4,10 +4,11 @@
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 <script src="http://localhost/myhome/jslib/openlayer/lib/OpenLayers.js"></script>
+<script type="text/javascript" src="http://localhost/myhome/myrepos/d3/d3.v2.js"></script>
 </head>
 <body>
 <h1>NY Stream of Mind</h1>
-<canvas id="timeline"></canvas>
+<div id="timeline"></div>
 <div style="width:700px; height:600px; float:left" id="map"></div>
 <div style="width:300px;float:right" class="tweets"></div>
 
@@ -15,17 +16,18 @@
 <script type="text/javascript">
 
 var startTime = Date();
-var canvas = document.getElementById("timeline");
-var content = canvas.getContext("2d");
-console.log(starttime);
+var canvas = $('#timeline');
+var tagList = [];
+//var content = canvas.getContext("2d");
+console.log(startTime);
 var createVectorPopup = function(layer, lonlat, style, fc, map) {
-  var point = new OpenLayers.Geometry.Point(lonlat.lon, lonlat.lan);
-  console.log(layer);
+  var point = new OpenLayers.Geometry.Point(lonlat.lon, lonlat.lan).transform(new OpenLayers.Projection("EPSG:4326"),
+            new OpenLayers.Projection("EPSG:900913"));
   var feature = new OpenLayers.Feature.Vector(point);
   layer.addFeatures([feature]);
   //var fc = new OpenLayers.Control.DrawFeature(layer, OpenLayers.Handler.Point);
   //fc.activate();
-  //map.addLayer(layer);
+  map.addLayer(layer);
   layer.events.register("mousedown", feature, function(evt) {
     if (this.popup == null) {
       this.popup = this.createPopup();
@@ -57,9 +59,9 @@ var createVectorPopup = function(layer, lonlat, style, fc, map) {
                             fillColor:'#20B2AA',
                             pointRadius: 5};
     var tweetL = new OpenLayers.Layer.Vector("tweetL");
-    map.addLayer(tweetL);
-    var fc = new OpenLayers.Control.DrawFeature(tweetL, OpenLayers.Handler.Point);
-    map.addControl(fc);
+    //map.addLayer(tweetL);
+    //var fc = new OpenLayers.Control.DrawFeature(tweetL, OpenLayers.Handler.Point);
+    //map.addControl(fc);
 	var boxes = new OpenLayers.Layer.Boxes("Boxes");
 	map.addLayer(boxes);
 	var ext = [-122.75,36.8,-121.75,37.8];
@@ -85,6 +87,7 @@ var createVectorPopup = function(layer, lonlat, style, fc, map) {
 		var loc = "Lat: "+d.geo.coordinates[0]+" Long: "+d.geo.coordinates[1];
 		var lonlati = new OpenLayers.LonLat(d.geo.coordinates[1],d.geo.coordinates[0])
 			.transform(new OpenLayers.Projection("EPSG:4326"),new OpenLayers.Projection("EPSG:900913"));
+        console.log(lonlati.lon+' -- '+lonlati.lat)
         var popupHTML = "<h3>" + d.user.screen_name + "</h3>" + "<p>" + d.text + "</p>" + "<p>" + d.created_at + "</p>";
         var featureStyle = {fill:true,
                             fillColor:'#20B2AA',
@@ -94,9 +97,10 @@ var createVectorPopup = function(layer, lonlat, style, fc, map) {
         //var popup = new OpenLayers.Popup("tweet-message",lonlati, popupSize, popupHTML,true);
         //var marker = new OpenLayers.Marker(lonlati, icon.clone());
         //var data = {popup:popup, marker:marker};
-        var feature = createVectorPopup(tweetL, lonlati, featureStyle, fc, map);
+        var feature = createVectorPopup(tweetL, lonlati, featureStyle, map);
         //var featMarker = feature.createMarker();
         //tweets.addMarker(featMarker);
+        map.addLayer(tweetL);
 	}
 	var htags = d.entities.hashtags;
 	var tagdiv = $("<p></p>");
