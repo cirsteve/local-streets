@@ -12,5 +12,6 @@ handle["/ny_stream"] = requestHandlers.ny_stream;
 handle["/city_stream"] = requestHandlers.city_stream;
 handle["/all_tweets"] = requestHandlers.all_tweets;
 handle["/hash_vis"] = requestHandlers.hash_vis;
+handle["/stream_viz"] = requestHandlers.stream_viz;
 
 server.start(router.route, handle);

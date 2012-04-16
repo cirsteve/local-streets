@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<head>
+<title>Streaming Tweets</title>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+
+<script type="text/javascript" src="http://localhost/myhome/myrepos/d3/d3.v2.js"></script>
+  <style type="text/css">
+  h1 {
+    color:#3A27B8;
+  }
+  #vis-container {
+    float: left;
+  }
+  #tweets {
+    float: right;
+    width: 300px;
+  }
+
+  .chart rect {
+    stroke: white;
+    fill: steelblue;
+    color: white;
+    font-family: arial;
+  }
+
+  .chart text {
+    fill: white;
+    font: 10px  arial;
+    
+  </style>
+
+</head>
+<body>
+<h1>Visualize the HashTags</h1>
+<div id="timeline"></div>
+<div style="width:300px;float:right" class="tweets"></div>
+
+
+<script type="text/javascript">
+var tagList = [];
+var d3TagList = [{tag: "foo", count: 20}, {tag: "boo", count: 10}];
+var tagObject = {};
+
+
+	var socket = io.connect("127.0.0.1:8888");
+  socket.on("sfny-incoming",function(data){
+
+
+    //parse incoming JSON tweet data
+  	  var d = $.parseJSON(data);
+	    var htags = d.entities.hashtags;
+      if (htags.length) {
+        htags.forEach(function(tag) {
+          if (tagObject.hasOwnProperty(tag.text)) {          
+           for ( var i = 0; i < tagList.length; i++) {
+             if (tag.text === tagList[i].tag) {            
+                tagList[i].count += 1;
+                break;
+              }          
+            }
+            tagList.sort(function(a,b) {
+              return b.count - a.count;
+            });
+          }
+          else {
+            tagList.push({tag:tag.text, count:1});
+            tagObject[tag.text] = true; 
+       // tagObject[tag.text] = tagObject.hasOwnProperty(tag.text) ? tagObject[tag.text] + 1 : 1;
+          }      
+        }); 
+        d3TagList = tagList.slice(0,19);
+        redraw();
+      }    
+  console.log(d3TagList);
+	});
+		
+var chart;
+chart = d3.select("body").attr("id", "timeline").append("svg")
+  .attr("class", "chart")
+  .attr("width", 800)
+  .attr("height", 600);
+     w = 80;
+     h = 20;
+      var x = d3.scale.linear()
+        .domain([0,d3.max(d3TagList)])
+        .range([0, 300]);
+
+      var y = d3.scale.linear()
+        .domain([0, d3TagList.length])
+        .rangeRound([0, h * d3TagList.length]);
+
+      var y1 = d3.scale.ordinal()
+        .domain(d3TagList)
+        .rangeBands([0, 120]);
+
+chart.selectAll("rect")
+  .data(d3TagList)
+  .enter().append("rect")
+    .attr("y", function(d, i) { return i* 20; })
+    .attr("x", function(d) { 0; })
+    .attr("height", 20)
+    .attr("width", function(d) { return y(d.count); });
+
+/*
+chart.append("line")
+  .attr("x1", 0)
+  .attr("x2", w * d3TagList.length)
+  .attr("y1", h - .5)
+  .attr("y2", h - .5)
+  .style("stroke", "#f00");
+  */
+
+chart.selectAll("text")
+  .data(d3TagList)
+  .enter().append("text")
+  .attr("y", function(d, i) { return i * 20 + 10; }) //x(i) - .5; })
+  .attr("x", 10)
+  .attr("dx", -3)
+  .attr("dy", ".15em")
+  .attr("text-anchor", "start")
+  .text(function (d) { return d.tag+' - '+d.count; });
+
+    function redraw() {
+      console.log('redraw called');
+      var rect = chart.selectAll("rect")
+        .data(d3TagList); // , function(d) {return d.time; });
+
+      rect.enter().insert("rect")
+        .attr("y", function(d, i) { return i * 20 - 0.5; })
+        .attr("x", function(d) { return 0; })
+        .attr("width", function(d) { return d.count * 100; } )
+        .attr("height", function(d) { return 20; })
+      .transition()
+        .duration(1000)
+        .attr("y", function(d, i) { return 200 * i - .5; });
+
+    rect.enter().append("text")
+//      .attr("x", x)
+ //     .attr("y", function(d) { return y1(d.text) + y1.rangeBand() / 2; })
+      .attr("y", function(d, i) { return (i * 20); }) //x(i) - .5; })
+      .attr("x", 10)
+      .attr("dx", -3)
+      .attr("dy", ".15em")
+      .attr("text-anchor", "start")
+      .text(function (d) { return d.tag+' - '+d.count; })
+      .transition()
+        .duration(1000)
+        .attr("y", function(d, i) { return 200 * i - .5; });
+
+      rect.transition()
+        .duration(1000)
+        .attr("y", function(d, i) { return 20 * i - .5; });
+
+      rect.exit().transition()
+        .duration(1000)
+        .attr("y", function(d, i) {return 20 * (i-1) - .5; })
+        .remove();
+    }
+
+</script>
+
+</body>

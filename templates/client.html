@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<head>
+<title>Streaming Tweets</title>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+<h1>Stream All The Things</h1>
+<div class="tweets">
+</div>
+<script type="text/javascript">
+	var socket = socket.connect("http://localhost:80");
+		socket.on("incoming",function(data){
+			$('div.tweets').append(data);
+		});
+</script>
+
+</body>

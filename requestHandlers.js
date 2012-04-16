@@ -76,7 +76,7 @@ function tstream(response){
 
 function city_stream(response){
 	var html;
-	html = fs.readFileSync('./city_stream.html');
+	html = fs.readFileSync('templates/city_stream.html');
 	response.writeHead(200,{"Content-Type":"text/html"});
 	response.write(html);
 	response.end();
@@ -84,7 +84,7 @@ function city_stream(response){
 
 function sf_stream(response){
 	var html;
-	html = fs.readFileSync('./sf_stream.html');
+	html = fs.readFileSync('templates/sf_stream.html');
 	response.writeHead(200,{"Content-Type":"text/html"});
 	response.write(html);
 	response.end();
@@ -92,22 +92,29 @@ function sf_stream(response){
 
 function ny_stream(response){
     var html;
-    html = fs.readFileSync('./ny_stream.html');
+    html = fs.readFileSync('templates/ny_stream.html');
     response.writeHead(200,{"Content-Type":"text/html"});
     response.write(html);
     response.end();
 }
 
 function ny_static(response){
-  var html = fs.readFileSync('./ny_static.html');
+  var html = fs.readFileSync('templates/ny_static.html');
   response.writeHead(200,{"Content-Type":"text/html"});
   response.write(html);
   response.end();
 };
 
 function hash_vis(response){
-  var html = fs.readFileSync('./hash_vis.html');
+  var html = fs.readFileSync('templates/hash_vis.html');
   response.writeHead(200,{"Content-Type":"text/html"});
+  response.write(html);
+  response.end();
+};
+
+function stream_viz(response) {
+  var html = fs.readFileSync('templates/stream_viz.html');
+  response.writeHead(200, {"Content-Type":"text/html"});
   response.write(html);
   response.end();
 };
@@ -136,3 +143,4 @@ exports.ny_stream = ny_stream;
 exports.city_stream = city_stream;
 exports.all_tweets = all_tweets;
 exports.hash_vis = hash_vis;
+exports.stream_viz = stream_viz;

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<head>
+  <title>Hash Tag Visualization</title>
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+  <script type="text/javascript" src="http://localhost/myhome/myrepos/d3/d3.v2.js"></script>
+  <style type="text/css">
+  h1 {
+    color:#3A27B8;
+  }
+  #vis-container {
+    float: left;
+  }
+  #tweets {
+    float: right;
+    width: 300px;
+  }
+
+  .chart rect {
+    stroke: white;
+    fill: steelblue;
+    color: white;
+    font-family: arial;
+  }
+
+  .chart text {
+    fill: white;
+    font: 10px  arial;
+    
+  </style>
+
+  <script type="text/javascript">
+  $(document).ready(function() {
+  /*
+    var data = [4, 8, 15, 16, 23, 42];
+
+    var chart = d3.select("vis-container").append("svg")
+      .attr("class", "chart")
+      .attr("width", 600)
+      .attr("height", 20 * data.length);
+      */
+  });
+  </script>
+
+</head>
+
+<body>
+  <h1>Hashtag, Break it Down</h1>
+  <div id="vis-container"></div>
+
+  <div id="tweets"></div>
+
+  <script type="text/javascript">
+  var tweetURL = "all_tweets";
+  var tweets = [];
+  var hashTags = {};
+  var buildHashArray = [];
+  var d3array = [];
+
+  var chart;
+
+  $.getJSON(tweetURL, function(data) { 
+   tweets = data;
+   $.each(data, function(key, val) {
+      tweets.push(val);
+    });
+   var hashtagcount = countHashtagObject(tweets);
+   buildChart(hashtagcount);
+  // addHash();
+  });
+
+
+  var buildChart = function(hashtagcount) {
+   // d3array = [{'hashtagtext' : count }, {'hashtagtext' : count}, ...];
+   for (key in hashtagcount) {
+     if (hashtagcount[key] > 5) 
+     d3array.push({text : key, value : hashtagcount[key]});
+   }
+
+   chart = d3.select("body").attr("id", "vis-container").append("svg")
+     .attr("class", "chart")
+     .attr("width", 600)
+     .attr("height", 600);
+
+/*
+    chart.selectAll("rect")
+     .data(d3array)
+    .enter().append("rect")
+     .attr("y", function(d, i) { return i * 20; })
+     .attr("x", x)
+     .attr("width", 400)
+     .attr("height", 20);
+     */
+     w = 80;
+     h = 20;
+      var x = d3.scale.linear()
+        .domain([0,d3.max(d3array)])
+        .range([0, 300]);
+
+      var y = d3.scale.linear()
+        .domain([0, d3array.length])
+        .rangeRound([0, h * d3array.length]);
+
+      var y1 = d3.scale.ordinal()
+        .domain(d3array)
+        .rangeBands([0, 120]);
+
+     chart.selectAll("rect")
+     .data(d3array)
+     .enter().append("rect")
+      .attr("y", function(d, i) { return i * 20; }) //x(i) - .5; })
+      .attr("x", function(d) { return x(d.value) - .5; })
+      .attr("height", 20)
+      .attr("width", function(d) { return y(d.value); });
+     
+     chart.append("line")
+      .attr("x1", 0)
+      .attr("x2", w * d3array.length)
+      .attr("y1", h - .5)
+      .attr("y2", h - .5)
+      .style("stroke", "#000");
+      
+    chart.selectAll("text")
+      .data(d3array)
+      .enter().append("text")
+//      .attr("x", x)
+ //     .attr("y", function(d) { return y1(d.text) + y1.rangeBand() / 2; })
+      .attr("y", function(d, i) { return (i * 20) + 10; }) //x(i) - .5; })
+      .attr("x", 10)
+      .attr("dx", -3)
+      .attr("dy", ".15em")
+      .attr("text-anchor", "start")
+      .text(function (d) { return d.text+' - '+d.value; });
+  /*
+     chart//.selectAll("text")
+      .data(d3array)
+      .enter().append("text")
+      .attr("x", 0)
+     // .attr("x", function(d) { return x(d.value) - .5; })
+      .attr("y", function(d, i) { return (i * 20) + 10; })
+      .attr("dx", -3) // padding-right
+      .attr("dy", ".35em") // vertical-align: middle
+      .attr("text-anchor", "end") // text-align: right
+      .text(function (d) { return d.value ; });
+  */
+
+}
+
+  // takes each of the tweets and determines how many times 
+  // the hashtag associated with the tweet occurs
+  var countHashtagObject = function(t) {
+    t.forEach(function(obj) {
+      obj.entities.hashtags.forEach(function(tag) {
+    //    console.log('t: '+tag+'tt: '+tag.text);
+        if (hashTags.hasOwnProperty(tag.text)) {
+          hashTags[tag.text] += 1;
+        }
+        else {
+          hashTags[tag.text] = 1;
+        }
+      });
+    });
+    return hashTags;
+  };
+/*
+  var addHash = function() {
+    var c = 0;
+    for (key in hashTags) {
+      if (hashTags[key] < 2) {
+        continue;
+      }
+      c++;
+      $('#tweets').append('<p>'+c+'-'+key+': '+hashTags[key]+'</p>');
+    }
+  };
+*/
+
+  </script>
+</body>
+</html>
+
+
+

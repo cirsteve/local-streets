@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<head>
+<title>Streaming Tweets</title>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="http://localhost/myhome/jslib/openlayer/lib/OpenLayers.js"></script>
+</head>
+<body>
+<h1>NY Stream of Mind</h1>
+<canvas id="timeline"></canvas>
+<div style="width:700px; height:600px; float:left" id="map"></div>
+<div style="width:300px;float:right" class="tweets"></div>
+
+<script type="text/javascript">
+
+
+var startTime = Date();
+var canvas = document.getElementById("timeline");
+var content = canvas.getContext("2d");
+console.log(startTime);
+
+	  console.log("starting client");
+	  var map = new OpenLayers.Map("map");
+
+	  var wms = new OpenLayers.Layer.OSM();
+	  map.addLayer(wms);
+
+
+      map.setCenter(new OpenLayers.LonLat(-73.8738,40.7464)
+           .transform(
+            new OpenLayers.Projection("EPSG:4326"),
+            new OpenLayers.Projection("EPSG:900913") 
+          )
+		, 11
+        );
+	  var markers = new OpenLayers.Layer.Markers("Markers");
+	  map.addLayer(markers);
+	  var boxes = new OpenLayers.Layer.Boxes("Boxes");
+	  map.addLayer(boxes);
+	  var ext = [-122.75,36.8,-121.75,37.8];
+	  //bounds = new OpenLayers.Bounds.fromArray(ext);
+	  bounds = new OpenLayers.Bounds();
+	  bounds.extend(new OpenLayers.LonLat(-122.52502441407,37.689612304688).transform(new OpenLayers.Projection("EPSG:4326"),new OpenLayers.Projection("EPSG:900913")));
+	  bounds.extend(new OpenLayers.LonLat(-122.34918322754,37.812194824219).transform(new OpenLayers.Projection("EPSG:4326"),new OpenLayers.Projection("EPSG:900913")));
+	  var box = new OpenLayers.Marker.Box(bounds);
+	  boxes.addMarker(box);
+	  var size = new OpenLayers.Size(21,25);
+      var tweetList = [];
+	  var icon = new OpenLayers.Icon("http://www.openlayers.org/dev/img/marker.png", size);
+	  var socket = io.connect("127.0.0.1:8888");
+		socket.on("sfny-incoming",function(data){
+			var d = $.parseJSON(data);
+            tweetList.push(d);
+			if (!d.geo){
+				var loc = "No Lat/Long";
+			}
+			else{
+				var loc = "Lat: "+d.geo.coordinates[0]+" Long: "+d.geo.coordinates[1];
+				var lonlati = new OpenLayers.LonLat(d.geo.coordinates[1],d.geo.coordinates[0])
+					.transform(new OpenLayers.Projection("EPSG:4326"),new OpenLayers.Projection("EPSG:900913"));
+				markers.addMarker(new OpenLayers.Marker(lonlati,icon.clone()));
+			}
+			var htags = d.entities.hashtags;
+			var tagdiv = $("<p></p>");
+			$.each(htags,function(i,tag){
+
+					tagdiv.append("#" + tag.text + " ");
+
+			});
+			$("div.tweets").prepend(tagdiv);
+			$("div.tweets").prepend("<hr />" + "<p>"+d.text + "</p>" + d.user.screen_name + " " + d.created_at + " " + loc);
+		});
+		
+</script>
+
+</body>
